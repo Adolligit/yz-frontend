@@ -1,4 +1,62 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// Estilos de cada elemento Markdown, seguindo o tema do app.
+// (o parâmetro `node` é descartado para não ir parar no DOM)
+const markdownComponents = {
+  h1: ({ node, ...props }) => (
+    <h1 className="text-lg font-bold text-white mt-4 mb-2 first:mt-0" {...props} />
+  ),
+  h2: ({ node, ...props }) => (
+    <h2 className="text-base font-bold text-white mt-4 mb-2 first:mt-0" {...props} />
+  ),
+  h3: ({ node, ...props }) => (
+    <h3 className="text-sm font-semibold text-[#20c997] mt-3 mb-1.5 first:mt-0" {...props} />
+  ),
+  p: ({ node, ...props }) => (
+    <p className="mb-2 last:mb-0 leading-relaxed" {...props} />
+  ),
+  ul: ({ node, ...props }) => (
+    <ul className="list-disc pl-5 mb-2 space-y-1 marker:text-[#20c997]" {...props} />
+  ),
+  ol: ({ node, ...props }) => (
+    <ol className="list-decimal pl-5 mb-2 space-y-1 marker:text-[#20c997]" {...props} />
+  ),
+  li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+  strong: ({ node, ...props }) => (
+    <strong className="font-semibold text-white" {...props} />
+  ),
+  em: ({ node, ...props }) => <em className="italic" {...props} />,
+  hr: ({ node, ...props }) => (
+    <hr className="my-3 border-gray-700" {...props} />
+  ),
+  blockquote: ({ node, ...props }) => (
+    <blockquote
+      className="border-l-2 border-[#20c997] bg-[#0f172a]/60 rounded-r-lg pl-3 pr-2 py-2 my-2 text-gray-300"
+      {...props}
+    />
+  ),
+  a: ({ node, ...props }) => (
+    <a className="text-[#20c997] underline" target="_blank" rel="noreferrer" {...props} />
+  ),
+  code: ({ node, ...props }) => (
+    <code className="bg-[#0f172a] text-[#20c997] rounded px-1 py-0.5 text-xs" {...props} />
+  ),
+  // Tabelas rolam na horizontal se não couberem na tela do celular
+  table: ({ node, ...props }) => (
+    <div className="overflow-x-auto my-2 rounded-lg border border-gray-700">
+      <table className="w-full text-xs border-collapse" {...props} />
+    </div>
+  ),
+  thead: ({ node, ...props }) => <thead className="bg-[#0f172a]" {...props} />,
+  th: ({ node, ...props }) => (
+    <th className="text-left font-semibold text-[#20c997] px-2.5 py-2 whitespace-nowrap" {...props} />
+  ),
+  td: ({ node, ...props }) => (
+    <td className="px-2.5 py-2 border-t border-gray-700 align-top" {...props} />
+  ),
+};
 
 export default function App() {
   const [messages, setMessages] = useState([
@@ -102,8 +160,14 @@ const handleSend = async () => {
                   <img src="/image_5e6afc.png" alt="Yzai" className="w-full h-full object-cover object-top" />
                 </div>
               )}
-              <div className={`max-w-[80%] p-3 text-sm ${msg.sender === 'user' ? 'bg-[#20c997] text-black rounded-2xl rounded-br-sm' : 'bg-[#1e293b] border border-gray-700 text-gray-200 rounded-2xl rounded-bl-sm'}`}>
-                {msg.text}
+              <div className={`min-w-0 p-3 text-sm ${msg.sender === 'user' ? 'max-w-[80%] bg-[#20c997] text-black rounded-2xl rounded-br-sm whitespace-pre-wrap break-words' : 'max-w-[88%] bg-[#1e293b] border border-gray-700 text-gray-200 rounded-2xl rounded-bl-sm break-words'}`}>
+                {msg.sender === 'yzai' ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                    {msg.text}
+                  </ReactMarkdown>
+                ) : (
+                  msg.text
+                )}
               </div>
             </div>
           ))}
