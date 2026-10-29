@@ -66,6 +66,7 @@ export default function App() {
   const [interactionCount, setInteractionCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,6 +75,14 @@ export default function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Faz a caixa de texto crescer conforme o conteúdo (até ~160px) e voltar ao tamanho normal ao limpar
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [inputText]);
 
 const handleSend = async () => {
   if (!inputText.trim()) return;
@@ -117,11 +126,11 @@ const handleSend = async () => {
 };
 
   return (
-    <div className="flex justify-center bg-[#0b1120] min-h-screen font-sans text-gray-100">
-      <div className="w-full max-w-md bg-[#131b2c] flex flex-col relative shadow-2xl overflow-hidden">
+    <div className="flex h-[100dvh] bg-[#0b1120] font-sans text-gray-100">
+      <div className="w-full bg-[#131b2c] flex flex-col relative overflow-hidden">
 
         {/* Header Superior */}
-        <div className="flex justify-between items-center p-5">
+        <div className="flex shrink-0 justify-between items-center p-5">
           <div className="flex items-center gap-3">
             <div className="bg-[#20c997] w-10 h-10 rounded-xl flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform -rotate-45">
@@ -139,8 +148,8 @@ const handleSend = async () => {
           </button>
         </div>
 
-        {/* Persona Area */}
-        <div className="flex flex-col items-center pb-4 border-b border-gray-800/50">
+        {/* Persona Area (some em telas muito baixas para sobrar espaço às mensagens) */}
+        <div className="flex shrink-0 flex-col items-center pb-4 border-b border-gray-800/50 [@media(max-height:700px)]:hidden">
           <div className="relative mb-3">
             <div className="w-[100px] h-[100px] rounded-full flex items-center justify-center border-2 border-[#20c997] shadow-[0_0_20px_rgba(32,201,151,0.25)] bg-[#1e293b] overflow-hidden">
               <img src="/image_5e6afc.png" alt="Yzai Persona" className="w-full h-full object-cover object-top text-[10px] text-white text-center flex items-center justify-center break-words" />
@@ -151,8 +160,8 @@ const handleSend = async () => {
           <p className="text-[#20c997] text-sm mt-1">Interações: {interactionCount}/5</p>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Chat Area (só esta área rola) */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} items-end`}>
               {msg.sender === 'yzai' && (
@@ -160,7 +169,7 @@ const handleSend = async () => {
                   <img src="/image_5e6afc.png" alt="Yzai" className="w-full h-full object-cover object-top" />
                 </div>
               )}
-              <div className={`min-w-0 p-3 text-sm ${msg.sender === 'user' ? 'max-w-[80%] bg-[#20c997] text-black rounded-2xl rounded-br-sm whitespace-pre-wrap break-words' : 'max-w-[88%] bg-[#1e293b] border border-gray-700 text-gray-200 rounded-2xl rounded-bl-sm break-words'}`}>
+              <div className={`min-w-0 p-3 text-sm ${msg.sender === 'user' ? 'max-w-[80%] lg:max-w-2xl bg-[#20c997] text-black rounded-2xl rounded-br-sm whitespace-pre-wrap break-words' : 'max-w-[88%] lg:max-w-3xl bg-[#1e293b] border border-gray-700 text-gray-200 rounded-2xl rounded-bl-sm break-words'}`}>
                 {msg.sender === 'yzai' ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {msg.text}
@@ -174,21 +183,28 @@ const handleSend = async () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="p-4 bg-[#131b2c] border-t border-gray-800">
-          <div className="flex items-center gap-2 bg-[#1e293b] border border-gray-700 rounded-full px-4 py-2">
-            <input
-              type="text"
+        {/* Input Area (fixa no rodapé) */}
+        <div className="shrink-0 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[#131b2c] border-t border-gray-800">
+          <div className="flex items-end gap-2 bg-[#1e293b] border border-gray-700 rounded-3xl px-4 py-2 focus-within:border-[#20c997]/60">
+            <textarea
+              ref={inputRef}
+              rows={1}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              onKeyDown={(e) => {
+                // Enter envia; Shift+Enter pula linha
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               placeholder="Digite sua mensagem..."
-              className="flex-1 bg-transparent text-white focus:outline-none text-sm placeholder-gray-500"
+              className="flex-1 resize-none bg-transparent text-white focus:outline-none text-base placeholder-gray-500 py-1.5 max-h-40 overflow-y-auto whitespace-pre-wrap break-words"
             />
             <button
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="text-[#20c997] hover:text-[#19a57b] disabled:opacity-50 flex-shrink-0"
+              className="text-[#20c997] hover:text-[#19a57b] disabled:opacity-50 flex-shrink-0 mb-1"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
                 <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
