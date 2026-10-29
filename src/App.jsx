@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import './scrollbar.css';
 
 // Estilos de cada elemento Markdown, seguindo o tema do app.
 // (o parâmetro `node` é descartado para não ir parar no DOM)
@@ -45,7 +46,7 @@ const markdownComponents = {
   ),
   // Tabelas rolam na horizontal se não couberem na tela do celular
   table: ({ node, ...props }) => (
-    <div className="overflow-x-auto my-2 rounded-lg border border-gray-700">
+    <div className="yz-scroll overflow-x-auto my-2 rounded-lg border border-gray-700">
       <table className="w-full text-xs border-collapse" {...props} />
     </div>
   ),
@@ -161,7 +162,7 @@ const handleSend = async () => {
         </div>
 
         {/* Chat Area (só esta área rola) */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+        <div className="yz-scroll flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} items-end`}>
               {msg.sender === 'yzai' && (
@@ -199,7 +200,7 @@ const handleSend = async () => {
                 }
               }}
               placeholder="Digite sua mensagem..."
-              className="flex-1 resize-none bg-transparent text-white focus:outline-none text-base placeholder-gray-500 py-1.5 max-h-40 overflow-y-auto whitespace-pre-wrap break-words"
+              className="yz-scroll flex-1 resize-none bg-transparent text-white focus:outline-none text-base placeholder-gray-500 py-1.5 max-h-40 overflow-y-auto whitespace-pre-wrap break-words"
             />
             <button
               onClick={handleSend}
